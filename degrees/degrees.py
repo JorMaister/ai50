@@ -84,47 +84,50 @@ def main():
             print(f"{i + 1}: {person1} and {person2} starred in {movie}")
 
 
-def shortest_path(source, target):
+def shortest_path(source_person_id, target_person_id):
     """
     Returns the shortest list of (movie_id, person_id) pairs
     that connect the source to the target.
 
     If no possible path, returns None.
     """
-    explored_states = set()
+    if source_person_id == target_person_id:
+        return []
+
+    explored_people_ids = set()
     frontier = QueueFrontier()
     # Generate the source node, and add it to the frontier
-    source_node = Node(state=source, parent=None, action=None)
+    source_node = Node(state=source_person_id, parent=None, action=None)
     frontier.add(source_node)
 
     while True:
         if frontier.empty():
-            raise Exception("No solution")
+            return None
 
         # Pick a node from the frontier
-        node = frontier.remove()
+        current_node = frontier.remove()
 
         # Explore the current node
-        for action, state in neighbors_for_person(node.state):
-            if not frontier.contains_state(source_node) and state not in explored_states:
+        for movie_id, person_id in neighbors_for_person(current_node.state):
+            if not frontier.contains_state(source_node) and person_id not in explored_people_ids:
                 # Create a child node for each unexplored node
-                child = Node(state=state, parent=node, action=action)
+                child_node = Node(state=person_id, parent=current_node, action=movie_id)
 
                 # If the current child node is the solution, we make a list containing all the actions and states
                 # that belongs to the path that takes from the source to the target nodes
-                if child.state == target:
+                if child_node.state == target_person_id:
                     path = []
-                    while child.parent is not None:
-                        path.append((child.action, child.state))
-                        child = child.parent
+                    while child_node.parent is not None:
+                        path.append((child_node.action, child_node.state))
+                        child_node = child_node.parent
                     path.reverse()
                     return path
                 else:
                     # If the current child node is not the solution, it is added to the frontier
-                    frontier.add(child)
+                    frontier.add(child_node)
 
         # At this point, the current node has been completely explored, so it's added to the explored set
-        explored_states.add(node.state)
+        explored_people_ids.add(current_node.state)
 
 
 def person_id_for_name(name):
