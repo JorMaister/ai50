@@ -8,6 +8,7 @@ from collections import Counter
 X = "X"
 O = "O"
 EMPTY = None
+board_dim = 3
 
 
 def initial_state():
@@ -27,22 +28,15 @@ def player(board):
     if board == initial_state():
         return X
     else:
-        flattened_list = [cell for boardLine in board for cell in boardLine]
-        count_dict = Counter(flattened_list)
-        noX = count_dict[X]
-        noO = count_dict[O]
-        return X if noX <= noO else O
+        _, x_list, o_list = parse_board(board)
+        return X if len(x_list) <= len(o_list) else O
 
 
 def actions(board):
     """
     Returns set of all possible actions (i, j) available on the board.
     """
-    possible_actions = set()
-    for i, row in enumerate(board):
-        for j, col in enumerate(row):
-            if col == EMPTY:
-                possible_actions.add((i, j))
+    possible_actions, _, _ = parse_board(board)
     return possible_actions
 
 
@@ -66,7 +60,16 @@ def winner(board):
     """
     Returns the winner of the game, if there is one.
     """
-    raise NotImplementedError
+    empty_pos_list, x_pos_list, o_pos_list = parse_board(board)
+    noX = len(x_pos_list)
+    noO = len(o_pos_list)
+    if noX < 3 and noO < 3:
+        return None
+    # Check the X player
+    if isAWin(x_pos_list):
+        return X
+    if isAWin(o_pos_list):
+        return O
 
 
 def terminal(board):
@@ -88,3 +91,62 @@ def minimax(board):
     Returns the optimal action for the current player on the board.
     """
     raise NotImplementedError
+
+
+# Aux functions
+def parse_board(board):
+    """
+    Returns two lists with the (i, j) position for empty, X, and O values
+    """
+    empty_pos_list = set()
+    x_pos_list = set()
+    o_pos_list = set()
+    for i, row in enumerate(board):
+        for j, col in enumerate(row):
+            current_val = board[i][j]
+            current_ind = (i, j)
+            if current_val == X:
+                x_pos_list.add(current_ind)
+            elif current_val == O:
+                o_pos_list.add(current_ind)
+            else:
+                empty_pos_list.add(current_ind)
+
+    return empty_pos_list, x_pos_list, o_pos_list
+
+
+def isAWin(positions):
+    """
+    Checks if the given positions correspond to a win
+    """
+    # Look for vertical and horizontal winning lines
+    rows, cols = zip(*positions)
+    rows_count_dict = Counter(rows)
+    cols_count_dict = Counter(cols)
+    for i in range(board_dim):
+        if rows_count_dict[i] == board_dim or cols_count_dict[i] == board_dim:
+            return True
+
+    # Look for diagonal winning lines
+    diagonal_win_up = [(0, 0), (1, 1), (2, 2)]
+    diagonal_win_down = [(2, 0), (1, 1), (0, 2)]
+    for pos in positions:
+        if pos in diagonal_win_down:
+            diagonal_win_down.remove(pos)
+        if pos in diagonal_win_up:
+            diagonal_win_up.remove(pos)
+        if len(diagonal_win_up) == 0 or len(diagonal_win_down) == 0:
+            return True
+
+    return False
+
+
+
+#     flattened_list = [cell for boardLine in board for cell in boardLine]
+#     count_dict = Counter(flattened_list)
+#     noX = count_dict[X]
+#     noO = count_dict[O]
+#
+#
+def are_all_equal(in_list, val):
+    return all([element == val for element in in_list])
