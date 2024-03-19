@@ -70,13 +70,19 @@ def winner(board):
         return X
     if isAWin(o_pos_list):
         return O
+    return None
 
 
 def terminal(board):
     """
     Returns True if game is over, False otherwise.
     """
-    raise NotImplementedError
+    if winner(board):
+        return True
+    else:
+        if len(actions(board)) == 0:
+            return True
+    return False
 
 
 def utility(board):
@@ -139,14 +145,3 @@ def isAWin(positions):
             return True
 
     return False
-
-
-
-#     flattened_list = [cell for boardLine in board for cell in boardLine]
-#     count_dict = Counter(flattened_list)
-#     noX = count_dict[X]
-#     noO = count_dict[O]
-#
-#
-def are_all_equal(in_list, val):
-    return all([element == val for element in in_list])
