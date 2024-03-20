@@ -3,6 +3,7 @@ Tic Tac Toe Player
 """
 import copy
 import math
+import random
 from collections import Counter
 
 X = "X"
@@ -60,7 +61,7 @@ def winner(board):
     """
     Returns the winner of the game, if there is one.
     """
-    empty_pos_list, x_pos_list, o_pos_list = parse_board(board)
+    _, x_pos_list, o_pos_list = parse_board(board)
     noX = len(x_pos_list)
     noO = len(o_pos_list)
     if noX < 3 and noO < 3:
@@ -102,7 +103,18 @@ def minimax(board):
     """
     Returns the optimal action for the current player on the board.
     """
-    raise NotImplementedError
+    if terminal(board):
+        return None
+
+    # Given a state s
+    # The maximizing player picks action a in Actions(s) that produces the highest value of Min-Value(Result(s, a)).
+    # The minimizing player picks action a in Actions(s) that produces the lowest value of Max-Value(Result(s, a)).
+    current_player = player(board)
+    if current_player == X:
+        _, act = min_value(board)
+    else:
+        _, act = max_value(board)
+    return act
 
 
 # Aux functions
@@ -151,3 +163,32 @@ def isAWin(positions):
             return True
 
     return False
+
+
+def max_value(board):
+    if terminal(board):
+        return utility(board), None
+    # Initialization
+    value = -math.inf
+    # Possible actions
+    action_list = actions(board)
+    for current_action in action_list:
+        resulting_board = result(board, current_action)
+        current_value, _ = min_value(resulting_board)
+        value = max(value, current_value)
+        return value, current_action
+
+
+def min_value(board):
+    if terminal(board):
+        return utility(board), None
+    # Initialization
+    value = math.inf
+    # Possible actions
+    action_list = actions(board)
+    for current_action in action_list:
+        resulting_board = result(board, current_action)
+        current_value, _ = max_value(resulting_board)
+        value = min(value, current_value)
+        return value, current_action  # Break the loop if the min val is found
+
